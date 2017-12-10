@@ -25,12 +25,6 @@ int initialise_main_window(SDL_Window** window, SDL_Renderer** renderer, const s
     return EXIT_SUCCESS;
 }
 
-int initialise_player(SDL_Surface* player_surface, SDL_Renderer* renderer, SDL_Texture* player_texture)
-{
-    player_surface = SDL_LoadBMP("resources/bar.bmp");
-    player_texture = SDL_CreateTextureFromSurface(renderer, player_surface);
-}
-
 void destroy(SDL_Window* window, SDL_Renderer* renderer)
 {
     SDL_DestroyRenderer(renderer);
