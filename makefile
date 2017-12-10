@@ -5,6 +5,7 @@ LINKER_FLAGS = -lSDL2 -lm
 
 OBJ =\
 	src/main.o \
+	src/map.o \
 	src/window.o \
 	src/game.o \
 

@@ -6,14 +6,15 @@
 typedef struct
 {
     SDL_Rect rect;
-    int8_t y_movement;
+    float x_velocity;
+    float y_velocity;
 } Ball;
 
 void game_loop(SDL_Window** window, SDL_Renderer** renderer, screen_size* size);
 void render(SDL_Renderer** renderer, SDL_Rect* left_player, SDL_Rect* right_player, SDL_Rect* ball);
 void move_player(const uint8_t** key_state, SDL_Scancode up, SDL_Scancode down, int* player_y);
 void move_ball(Ball* ball, const SDL_Rect* left_player, const SDL_Rect* right_player, const int max_x, const int max_y);
-int calculate_bounce_angle(const int ball_y, const int player_y, const int player_h);
+double calculate_bounce_angle(const int ball_y, const int player_y, const int player_h, const bool right);
 /*
  * Returns 1 if the ball collides with the player. Otherwise return 0
 */
