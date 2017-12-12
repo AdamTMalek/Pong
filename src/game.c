@@ -140,11 +140,7 @@ void move_ball(Ball* ball, const SDL_Rect* left_player, const SDL_Rect* right_pl
 double calculate_bounce_angle(const int ball_y, const int player_y, const int player_h, const bool right)
 {
     float difference = ball_y - (player_y + player_h / 2);
-    printf("Difference: %f\n", difference);
-    float angle = map(difference, -(player_h / 2.0), (player_h / 2.0), 225.0, 135.0);
-
-    printf("Angle: %f\n", angle);
-    return angle;
+    return map(difference, -(player_h / 2.0), (player_h / 2.0), 225.0, 135.0);
 }
 
 int is_colliding(SDL_Rect* ball, const int player_x, const int player_y, const int player_h)
