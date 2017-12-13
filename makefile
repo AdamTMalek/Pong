@@ -1,12 +1,14 @@
 CC = gcc
 
 COMPILER_FLAGS = -g -pedantic -Wall
-LINKER_FLAGS = -lSDL2 -lm
+LINKER_FLAGS = -lSDL2 -lSDL2_ttf -lm
 
 OBJ =\
 	src/main.o \
 	src/map.o \
 	src/window.o \
+	src/path.o \
+	src/score.o \
 	src/game.o \
 
 all: main
