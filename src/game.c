@@ -5,6 +5,7 @@
 #include "game.h"
 #include "window.h"
 #include "map.h"
+#include "score.h"
 
 #define RAD(deg) ((deg)*(M_PI)/(180))
 
@@ -18,6 +19,12 @@ void game_loop(SDL_Window** window, SDL_Renderer** renderer, screen_size* size)
 
     bool run = true;
     bool wait = true;
+
+    Score score;
+    Text score_text;
+    init_score_text(&score_text, (size->x / 2));
+    init_score(&score);
+    update_score_text(renderer, score, &score_text);
 
     SDL_Event event;
     SDL_Rect left_player = {50, 50, 10, 90};
@@ -35,10 +42,9 @@ void game_loop(SDL_Window** window, SDL_Renderer** renderer, screen_size* size)
         0,
     };
 
-
     while(run)
     {
-        render(renderer, &left_player, &right_player, &(ball.rect));
+        render(renderer, &left_player, &right_player, &(ball.rect), &score_text);
 
         // Update the array of keystates
         while(SDL_PollEvent(&event) != 0)
@@ -62,7 +68,16 @@ void game_loop(SDL_Window** window, SDL_Renderer** renderer, screen_size* size)
         move_player(&key_state, SDL_SCANCODE_W, SDL_SCANCODE_S, &left_player.y);
         move_player(&key_state, SDL_SCANCODE_UP, SDL_SCANCODE_DOWN, &right_player.y);
     
-        move_ball(&ball, &left_player, &right_player, size->x, size->y);
+        int ball_pos = move_ball(&ball, &left_player, &right_player, size->x, size->y);
+        if(ball_pos != ONSCREEN)
+        {
+            int player_scored = ball_pos == OFF_LEFT ? RIGHT : LEFT;
+            add_point(&score, player_scored);
+            update_score_text(renderer, score, &score_text);
+            reset_ball_position(&ball, size->x / 2, size->y / 2);
+            wait = true;
+            continue;
+        }
 
         // Limit players so they stay on the screen
         limit_player(&left_player.y, left_player.h, (*size).y);
@@ -75,12 +90,15 @@ void game_loop(SDL_Window** window, SDL_Renderer** renderer, screen_size* size)
             SDL_Delay(frameDelay - frameTime);
         }
     }
+
+    terminate_score(&score_text);
 }
 
-void render(SDL_Renderer** renderer, SDL_Rect* left_player, SDL_Rect* right_player, SDL_Rect* ball)
+void render(SDL_Renderer** renderer, SDL_Rect* left_player, SDL_Rect* right_player, SDL_Rect* ball, const Text* score_text)
 {
     SDL_SetRenderDrawColor(*renderer, 0, 0, 0, 255);
     SDL_RenderClear(*renderer);
+    SDL_RenderCopy(*renderer, score_text->texture, NULL, &(score_text->rect));
     SDL_SetRenderDrawColor(*renderer, 255, 255, 255, 255);
     SDL_RenderFillRect(*renderer, left_player);
     SDL_RenderFillRect(*renderer, right_player);
@@ -101,11 +119,11 @@ void move_player(const uint8_t** key_state, SDL_Scancode up, SDL_Scancode down, 
     }
 }
 
-void move_ball(Ball* ball, const SDL_Rect* left_player, const SDL_Rect* right_player, const int max_x, const int max_y)
+int move_ball(Ball* ball, const SDL_Rect* left_player, const SDL_Rect* right_player, const int max_x, const int max_y)
 {
-    static bool going_right = true;
     const short speed = 2;
-
+    bool going_right = ball->x_velocity > 0 ? true : false;
+    
     if(going_right)
     {
         if(is_colliding(&(ball->rect), right_player->x, right_player->y, right_player->h))
@@ -135,6 +153,13 @@ void move_ball(Ball* ball, const SDL_Rect* left_player, const SDL_Rect* right_pl
 
     ball->rect.x += (int)round(ball->x_velocity);
     ball->rect.y += (int)round(ball->y_velocity);
+
+    if(ball->rect.x > max_x)
+        return OFF_RIGHT;
+    else if(ball->rect.x < 0)
+        return OFF_LEFT;
+    else
+        return ONSCREEN;
 }
 
 double calculate_bounce_angle(const int ball_y, const int player_y, const int player_h, const bool right)
@@ -168,4 +193,12 @@ void limit_player(int* player_y, int player_height, int max_y)
     {
         *player_y = max_y - player_height;
     }
+}
+
+void reset_ball_position(Ball* ball, const int x, const int y)
+{
+    ball->y_velocity = 0;
+    ball->x_velocity = 2;
+    ball->rect.x = x;
+    ball->rect.y = y;
 }
