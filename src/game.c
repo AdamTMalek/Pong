@@ -10,6 +10,7 @@
 #define RAD(deg) ((deg)*(M_PI)/(180))
 
 #define BALL_SPEED 2
+#define BALL_SIZE 5
 
 void game_loop(SDL_Window** window, SDL_Renderer** renderer, screen_size* size)
 {
@@ -32,17 +33,10 @@ void game_loop(SDL_Window** window, SDL_Renderer** renderer, screen_size* size)
     SDL_Rect left_player = {50, 50, 10, 90};
     SDL_Rect right_player = {size->x - 70, 50, 10, 90}; // 50 as the base position + 20 additional offset
 
-    Ball ball = 
-    {
-        // SDL_Rect
-        { 
-            size-> x / 2, 
-            size->y / 2,
-            5, 5,
-        },
-        BALL_SPEED,
-        0,
-    };
+    Ball ball;
+    ball.rect.h = BALL_SIZE;
+    ball.rect.w = BALL_SIZE;
+    reset_ball_position(&ball, size->x / 2, size->y / 2);
 
     while(run)
     {
@@ -198,7 +192,7 @@ void limit_player(int* player_y, int player_height, int max_y)
 void reset_ball_position(Ball* ball, const int x, const int y)
 {
     ball->y_velocity = 0;
-    ball->x_velocity = 2;
+    ball->x_velocity = BALL_SPEED;
     ball->rect.x = x;
     ball->rect.y = y;
 }
