@@ -39,6 +39,11 @@ double calculate_bounce_angle(const int ball_y, const int player_y, const int pl
 int is_colliding(SDL_Rect* ball,const int player_x, const int player_y, const int player_h);
 
 /*
+ * Returns 1 if the value is between min and max (including)
+*/
+bool in_bounds(const int value, const int min, const int max);
+
+/*
  * Limit the player to the boundaries of the screen
 */
 void limit_player(int* player_y, int player_height, int max_y);
