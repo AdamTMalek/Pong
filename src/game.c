@@ -9,6 +9,8 @@
 
 #define RAD(deg) ((deg)*(M_PI)/(180))
 
+#define BALL_SPEED 2
+
 void game_loop(SDL_Window** window, SDL_Renderer** renderer, screen_size* size)
 {
     const int FPS = 60;
@@ -38,7 +40,7 @@ void game_loop(SDL_Window** window, SDL_Renderer** renderer, screen_size* size)
             size->y / 2,
             5, 5,
         },
-        2,
+        BALL_SPEED,
         0,
     };
 
@@ -121,32 +123,22 @@ void move_player(const uint8_t** key_state, SDL_Scancode up, SDL_Scancode down, 
 
 int move_ball(Ball* ball, const SDL_Rect* left_player, const SDL_Rect* right_player, const int max_x, const int max_y)
 {
-    const short speed = 2;
     bool going_right = ball->x_velocity > 0 ? true : false;
     
-    if(going_right)
-    {
-        if(is_colliding(&(ball->rect), right_player->x, right_player->y, right_player->h))
-        {
-            going_right = false;
+    const SDL_Rect* player = going_right ? right_player : left_player;
 
-            double bounce_angle = calculate_bounce_angle(ball->rect.y, right_player->y, right_player->h, true);
-            ball->y_velocity = speed * sin(RAD(bounce_angle));
-            ball->x_velocity = speed * -sin(RAD(bounce_angle - 90));
-        }
-    }
-    else
+    if(is_colliding(&(ball->rect),player->x, player->y, player->h))
     {
-        if(is_colliding(&(ball->rect), left_player->x + left_player->w, left_player->y, left_player->h))
-        {
-            going_right = true;
+        double bounce_angle = calculate_bounce_angle(ball->rect.y, player->y, player->h, true);
+        ball->y_velocity = BALL_SPEED * sin(RAD(bounce_angle));
+        ball->x_velocity = BALL_SPEED * sin(RAD(bounce_angle - 90));
 
-            double bounce_angle = calculate_bounce_angle(ball->rect.y, left_player->y, left_player->h, false);
-            ball->y_velocity = speed * sin(RAD(bounce_angle));
-            ball->x_velocity = speed * sin(RAD(bounce_angle - 90));
-        }
+        if(going_right)
+            ball->x_velocity *= -1;
     }
-    if(ball->rect.y >= max_y || ball->rect.y <= 0)
+
+
+    if(ball_out_y(ball->rect.y, max_y))
     {
         ball->y_velocity *= -1; // Inverse
     }
@@ -160,6 +152,11 @@ int move_ball(Ball* ball, const SDL_Rect* left_player, const SDL_Rect* right_pla
         return OFF_LEFT;
     else
         return ONSCREEN;
+}
+
+bool ball_out_y(const int y, const int max_y)
+{
+    return y >= max_y || y <= 0;
 }
 
 double calculate_bounce_angle(const int ball_y, const int player_y, const int player_h, const bool right)
