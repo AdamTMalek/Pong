@@ -9,6 +9,9 @@
 
 #define RAD(deg) ((deg)*(M_PI)/(180))
 
+#define BALL_SPEED 2
+#define BALL_SIZE 5
+
 void game_loop(SDL_Window** window, SDL_Renderer** renderer, screen_size* size)
 {
     const int FPS = 60;
@@ -30,17 +33,10 @@ void game_loop(SDL_Window** window, SDL_Renderer** renderer, screen_size* size)
     SDL_Rect left_player = {50, 50, 10, 90};
     SDL_Rect right_player = {size->x - 70, 50, 10, 90}; // 50 as the base position + 20 additional offset
 
-    Ball ball = 
-    {
-        // SDL_Rect
-        { 
-            size-> x / 2, 
-            size->y / 2,
-            5, 5,
-        },
-        2,
-        0,
-    };
+    Ball ball;
+    ball.rect.h = BALL_SIZE;
+    ball.rect.w = BALL_SIZE;
+    reset_ball_position(&ball, size->x / 2, size->y / 2);
 
     while(run)
     {
@@ -121,32 +117,22 @@ void move_player(const uint8_t** key_state, SDL_Scancode up, SDL_Scancode down, 
 
 int move_ball(Ball* ball, const SDL_Rect* left_player, const SDL_Rect* right_player, const int max_x, const int max_y)
 {
-    const short speed = 2;
     bool going_right = ball->x_velocity > 0 ? true : false;
     
-    if(going_right)
-    {
-        if(is_colliding(&(ball->rect), right_player->x, right_player->y, right_player->h))
-        {
-            going_right = false;
+    const SDL_Rect* player = going_right ? right_player : left_player;
 
-            double bounce_angle = calculate_bounce_angle(ball->rect.y, right_player->y, right_player->h, true);
-            ball->y_velocity = speed * sin(RAD(bounce_angle));
-            ball->x_velocity = speed * -sin(RAD(bounce_angle - 90));
-        }
-    }
-    else
+    if(is_colliding(&(ball->rect),player->x, player->y, player->h))
     {
-        if(is_colliding(&(ball->rect), left_player->x + left_player->w, left_player->y, left_player->h))
-        {
-            going_right = true;
+        double bounce_angle = calculate_bounce_angle(ball->rect.y, player->y, player->h, true);
+        ball->y_velocity = BALL_SPEED * sin(RAD(bounce_angle));
+        ball->x_velocity = BALL_SPEED * sin(RAD(bounce_angle - 90));
 
-            double bounce_angle = calculate_bounce_angle(ball->rect.y, left_player->y, left_player->h, false);
-            ball->y_velocity = speed * sin(RAD(bounce_angle));
-            ball->x_velocity = speed * sin(RAD(bounce_angle - 90));
-        }
+        if(going_right)
+            ball->x_velocity *= -1;
     }
-    if(ball->rect.y >= max_y || ball->rect.y <= 0)
+
+
+    if(ball_out_y(ball->rect.y, max_y))
     {
         ball->y_velocity *= -1; // Inverse
     }
@@ -162,6 +148,11 @@ int move_ball(Ball* ball, const SDL_Rect* left_player, const SDL_Rect* right_pla
         return ONSCREEN;
 }
 
+bool ball_out_y(const int y, const int max_y)
+{
+    return y >= max_y || y <= 0;
+}
+
 double calculate_bounce_angle(const int ball_y, const int player_y, const int player_h, const bool right)
 {
     float difference = ball_y - (player_y + player_h / 2);
@@ -170,17 +161,20 @@ double calculate_bounce_angle(const int ball_y, const int player_y, const int pl
 
 int is_colliding(SDL_Rect* ball, const int player_x, const int player_y, const int player_h)
 {
-    if(ball->x != player_x)
+    if(ball->x == player_x)
     {
-        return 0;
-    }
-
-    if(ball->y + ball->h >= player_y && ball->y <= (player_y + player_h))
-    {
-        return 1;
+        if (in_bounds(ball->y + ball->h, player_y, player_y + player_h))
+        {
+            return 1;
+        }
     }
     
     return 0;
+}
+
+bool in_bounds(const int value, const int min, const int max)
+{
+    return value > min && value < max;
 }
 
 void limit_player(int* player_y, int player_height, int max_y)
@@ -198,7 +192,7 @@ void limit_player(int* player_y, int player_height, int max_y)
 void reset_ball_position(Ball* ball, const int x, const int y)
 {
     ball->y_velocity = 0;
-    ball->x_velocity = 2;
+    ball->x_velocity = BALL_SPEED;
     ball->rect.x = x;
     ball->rect.y = y;
 }
