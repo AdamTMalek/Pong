@@ -5,6 +5,7 @@
 
 #include "window.h"
 #include "game.h"
+#include "sound.h"
 
 int main(int argc, char* args[])
 {   
@@ -15,13 +16,20 @@ int main(int argc, char* args[])
     size.x = 640;
     size.y = 480;
 
-    if(initialise_main_window(&window, &renderer, &size) != 0)
+    if (initialise_main_window(&window, &renderer, &size) != 0)
     {
         printf("Something went wrong...");
         return EXIT_FAILURE;
     }
+
+	if (!init_sound())
+	{
+		return EXIT_FAILURE;
+	}
+
     game_loop(&window, &renderer, &size);
 
     destroy(window, renderer);
+	quit_sound();
     return EXIT_SUCCESS;
 }
