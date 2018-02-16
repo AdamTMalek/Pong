@@ -170,6 +170,11 @@ int move_ball(Ball *ball, const SDL_Rect *left_player, const SDL_Rect *right_pla
 		return ONSCREEN;
 }
 
+bool ball_out_y(const int y, const int max_y)
+{
+    return y >= max_y || y <= 0;
+}
+
 double calculate_bounce_angle(const int ball_y, const int player_y, const int player_h, const bool right)
 {
 	float difference = ball_y - (player_y + player_h / 2);
@@ -178,20 +183,23 @@ double calculate_bounce_angle(const int ball_y, const int player_y, const int pl
 
 int is_colliding(SDL_Rect *ball, const int player_x, const int player_y, const int player_h)
 {
-	if (ball->x != player_x)
-	{
-		return 0;
-	}
-
-	if (ball->y + ball->h >= player_y && ball->y <= (player_y + player_h))
-	{
-		return 1;
-	}
-
-	return 0;
+    if(ball->x == player_x)
+    {
+        if (in_bounds(ball->y + ball->h, player_y, player_y + player_h))
+        {
+            return 1;
+        }
+    }
+    
+    return 0;
 }
 
-void limit_player(int *player_y, int player_height, int max_y)
+bool in_bounds(const int value, const int min, const int max)
+{
+    return value > min && value < max;
+}
+
+void limit_player(int* player_y, int player_height, int max_y)
 {
 	if (*player_y < 0)
 	{

@@ -26,6 +26,10 @@ void move_player(const uint8_t** key_state, SDL_Scancode up, SDL_Scancode down, 
  * Returns different values depending on whether the ball is onscreen or offscreen
 */
 int move_ball(Ball* ball, const SDL_Rect* left_player, const SDL_Rect* right_player, const int max_x, const int max_y);
+/*
+ * Returns true whenever ball's y position is above or equal to max_y or below or equal to 0.
+*/
+bool ball_out_y(const int y, const int max_y);
 
 double calculate_bounce_angle(const int ball_y, const int player_y, const int player_h, const bool right);
 
@@ -33,6 +37,11 @@ double calculate_bounce_angle(const int ball_y, const int player_y, const int pl
  * Returns 1 if the ball collides with the player. Otherwise return 0
 */
 int is_colliding(SDL_Rect* ball,const int player_x, const int player_y, const int player_h);
+
+/*
+ * Returns 1 if the value is between min and max (including)
+*/
+bool in_bounds(const int value, const int min, const int max);
 
 /*
  * Limit the player to the boundaries of the screen
